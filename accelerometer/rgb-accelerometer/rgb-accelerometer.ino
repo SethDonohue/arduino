@@ -5,11 +5,15 @@
 //Website:www.sunfounder.com
 //2015.5.7
 /*************************************************************************/
-// RGB declarations
+// Controller Inputs
+
 const int redPin = 11; // R petal on RGB LED module connected to digital pin 11 
 const int greenPin = 10; // G petal on RGB LED module connected to digital pin 10 
 const int bluePin = 9; // B petal on RGB LED module connected to digital pin 9 
 const int delayTime = 50; // milliseconds
+
+// Used to convert radians to degrees, set to 1/1 to keep output to degrees
+int degreeToRadControl = PI/PI;
 
 // Accelerometer declarations and imports
 #include <Wire.h>  //Call the I2C library built in Arduino
@@ -31,8 +35,6 @@ int Y0, Y1, Y_out;
 int Z1, Z0, Z_out;
 double Xg, Yg, Zg;
 double Xangle, Yangle, Zangle;
-// Used to convert radians to degrees, set to 1/1 to keep output to degrees
-int degreeToRadControl = PI/PI;
 int redIn, greenIn, blueIn;
 
 // Function declarations
@@ -44,16 +46,17 @@ analogWrite(bluePin, blue);
 }
 
 // Calculating radians and then converting to degrees with atan(param) * (180/PI);
+// adding 1.5 radians to end to make range from 0rad to 3rad instead of -1.5rad to 1.5rad
 double X_angle(double Xg, double Yg, double Zg, int degreeControl) {
-  return atan(Xg/(sqrt((Yg*Yg) + (Zg*Zg))))*degreeControl;
+  return (atan(Xg/(sqrt((Yg*Yg) + (Zg*Zg))))*degreeControl) + 1.5;
 }
 
 double Y_angle(double Xg, double Yg, double Zg, int degreeControl) {
-  return atan(Yg/(sqrt((Xg*Xg) + (Zg*Zg))))*degreeControl;
+  return (atan(Yg/(sqrt((Xg*Xg) + (Zg*Zg))))*degreeControl) + 1.5;
 }
 
 double Z_angle(double Xg, double Yg, double Zg, int degreeControl) {
-  return atan(Zg/(sqrt((Yg*Yg) + (Xg*Xg))))*degreeControl;
+  return (atan(Zg/(sqrt((Yg*Yg) + (Xg*Xg))))*degreeControl) + 1.5;
 }
 
 /******************************************************/
@@ -159,9 +162,10 @@ void loop() // run over and over again
   Yangle = Y_angle(Xg, Yg, Zg, degreeToRadControl);
   Zangle = Z_angle(Xg, Yg, Zg, degreeToRadControl);
 
-  redIn = abs(255*(Xangle/1.5));
-  greenIn = abs(255*(Yangle/1.5));
-  blueIn = abs(255*(Zangle/1.5));
+  // Creating range ratio for color value, angle in radians, max 3radians.
+  redIn = (255*(Xangle/3));
+  greenIn = (255*(Yangle/3));
+  blueIn = (255*(Zangle/3));
 
   
 //  if (Yangle > 0.5 || Yangle < -0.5){
@@ -193,7 +197,7 @@ void loop() // run over and over again
 //  Serial.println(Zg);
 
 // Delay not need here due to RGB delay
-  delay(100);  // Adjust the value to change the refresh rate. 
+  delay(delayTime);  // Adjust the value to change the refresh rate. 
 } 
 
 
