@@ -1,9 +1,9 @@
-//RGB LED
-
-//The RGB LED will appear red, green, and blue first, then red, orange, yellow, green, blue, indigo, and purple.
-//Email:support@sunfounder.com
-//Website:www.sunfounder.com
-//2015.5.7
+// Seth Donohue - RGB LED controlled by 3axis tilt of ADXL345
+// TODO: ADD toggle input to allow adustment of axis individually.
+//      - may need  different buttons?
+//      - Can use one button to cycle through and show a signal LED that tells which axis you are adjusting
+//        - OR have the LED's flash a count for X, Y or Z axis.
+// TODO: HOW? To get Z-axis to be adjustable?
 /*************************************************************************/
 // Controller Inputs
 
