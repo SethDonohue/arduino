@@ -87,8 +87,11 @@ void setup()
 /***************************************************************************/
 void loop() // run over and over again 
 { 
-  // RGB Stuffs...
-  // Basic colors: 
+
+//  TODO: ADD an input setup that allows me to select which access to adjust to control colors indivudually
+  
+//  RGB Stuffs...
+//  Basic colors: 
 //  color(255, 0, 0); // turn the RGB LED red 
 //  delay(delayTime); // delay for 1 second 
 //  color(0,255, 0); // turn the RGB LED green 
