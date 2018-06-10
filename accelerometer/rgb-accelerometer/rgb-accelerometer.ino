@@ -15,6 +15,10 @@ const int delayTime = 50; // milliseconds
 // Used to convert radians to degrees, set to 1/1 to keep output to degrees
 int degreeToRadControl = PI/PI;
 
+// Axis Adjustment Toggle and pins
+int adjustmentAllowed = 0;
+const int togglePin = 12;
+
 // Accelerometer declarations and imports
 #include <Wire.h>  //Call the I2C library built in Arduino
 //Set the address of the register
@@ -38,6 +42,8 @@ double Xangle, Yangle, Zangle;
 int redIn, greenIn, blueIn;
 
 // Function declarations
+
+// Color writing
 void color (unsigned char red, unsigned char green, unsigned char blue) // the color generating function 
 { 
 analogWrite(redPin, red); 
@@ -46,7 +52,7 @@ analogWrite(bluePin, blue);
 }
 
 // Calculating radians and then converting to degrees with atan(param) * (180/PI);
-// adding 1.5 radians to end to make range from 0rad to 3rad instead of -1.5rad to 1.5rad
+//    adding 1.5 radians to end to make range from 0rad to 3rad instead of -1.5rad to 1.5rad
 double X_angle(double Xg, double Yg, double Zg, int degreeControl) {
   return (atan(Xg/(sqrt((Yg*Yg) + (Zg*Zg))))*degreeControl) + 1.5;
 }
@@ -59,12 +65,23 @@ double Z_angle(double Xg, double Yg, double Zg, int degreeControl) {
   return (atan(Zg/(sqrt((Yg*Yg) + (Xg*Xg))))*degreeControl) + 1.5;
 }
 
+// Toggle function for signal input
+//    - Write a function that accepts a signal input with a button
+//    - ON: axis adjustment changes RGB
+//    - OFF: axis adjustment disabled
+
+void toggleAxisAdjustment(adjustmentAllowed) {
+  if (adjustmentAllowed === 0)
+}
+
 /******************************************************/
 
 
 /**************************************************************************/
 void setup()
 { 
+  pinMode(togglePin,INPUT);//initialize the toggle pin as input 
+  
   // RGB
   pinMode(redPin, OUTPUT); // sets the redPin to be an output 
   pinMode(greenPin, OUTPUT); // sets the greenPin to be an output 
@@ -87,33 +104,15 @@ void setup()
 /***************************************************************************/
 void loop() // run over and over again 
 { 
-
-//  TODO: ADD an input setup that allows me to select which access to adjust to control colors indivudually
+  // Read the state of the toggle pin and check if the buttong is pressed
+  // if it is the state is HIGH
+  if (digitalRead(togglePin) == HIGH) {
+    adjustmentAllowed = 1;
+  } else {
+    adjustmentAllowed = 0;
+  }
   
-//  RGB Stuffs...
-//  Basic colors: 
-//  color(255, 0, 0); // turn the RGB LED red 
-//  delay(delayTime); // delay for 1 second 
-//  color(0,255, 0); // turn the RGB LED green 
-//  delay(delayTime); // delay for 1 second 
-//  color(0, 0, 255); // turn the RGB LED blue 
-//  delay(delayTime); // delay for 1 second 
-//  // Example blended colors: 
-//  color(255,0,252); // turn the RGB LED red 
-//  delay(delayTime); // delay for 1 second 
-//  color(237,109,0); // turn the RGB LED orange 
-//  delay(delayTime); // delay for 1 second 
-//  color(255,215,0); // turn the RGB LED yellow 
-//  delay(delayTime); // delay for 1 second 
-//  color(34,139,34); // turn the RGB LED green 
-//  delay(delayTime); // delay for 1 second 
-//  color(0,112,255); // turn the RGB LED blue 
-//  delay(delayTime); // delay for 1 second
-//  color(0,46,90); // turn the RGB LED indigo 
-//  delay(delayTime); // delay for 1 second
-//  color(128,0,128); // turn the RGB LED purple 
-//  delay(delayTime); // delay for 1 second
-
+    
   //ADXL345
 
   // X-Axis reading...
@@ -170,36 +169,18 @@ void loop() // run over and over again
   greenIn = (255*(Yangle/3));
   blueIn = (255*(Zangle/3));
 
-  
-//  if (Yangle > 0.5 || Yangle < -0.5){
-//    color(255, 255, 0); // turn the RGB LED red 
-//  } else {
-//    color(0, 0, 0); // turn the RGB LED red 
-//  }
+
   color(redIn, greenIn, blueIn);
 
-  Serial.print("Red=");
+  Serial.print("Adjustment Allowed=");
+  Serial.print(adjustmentAllowed);
+  Serial.print("\tRed=");
   Serial.print(redIn);
   Serial.print("\tGreen=");
   Serial.print(greenIn);
   Serial.print("\tBlue=");
   Serial.println(blueIn);
-  
-//  Serial.print("\tX=");
-//  Serial.print(Xangle);
-//  Serial.print("\tY=");
-//  Serial.print(Yangle);
-//  Serial.print("\tZ=");
-//  Serial.println(Zangle);
 
-//  Serial.print("X=");
-//  Serial.print(Xg);
-//  Serial.print("\tY=");
-//  Serial.print(Yg);
-//  Serial.print("\tZ=");
-//  Serial.println(Zg);
-
-// Delay not need here due to RGB delay
   delay(delayTime);  // Adjust the value to change the refresh rate. 
 } 
 
