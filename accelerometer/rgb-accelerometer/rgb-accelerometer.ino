@@ -69,10 +69,10 @@ double Z_angle(double Xg, double Yg, double Zg, int degreeControl) {
 //    - Write a function that accepts a signal input with a button
 //    - ON: axis adjustment changes RGB
 //    - OFF: axis adjustment disabled
-
-void toggleAxisAdjustment(adjustmentAllowed) {
-  if (adjustmentAllowed === 0)
-}
+//
+//int toggleAxisAdjustment(adjustmentAllowed) {
+//  if (adjustmentAllowed === 0)
+//}
 
 /******************************************************/
 
@@ -108,69 +108,68 @@ void loop() // run over and over again
   // if it is the state is HIGH
   if (digitalRead(togglePin) == HIGH) {
     adjustmentAllowed = 1;
+      
+    //ADXL345
+  
+    // X-Axis reading...
+    Wire.beginTransmission(ADXAddress);
+    Wire.write(Register_X0);
+    Wire.write(Register_X1);
+    Wire.endTransmission();
+    Wire.requestFrom(ADXAddress, 2);
+    if (Wire.available() <= 2);
+    {
+      X0 = Wire.read();
+      X1 = Wire.read();
+      X1 = X1 << 8;
+      X_out = X0 + X1;
+    }
+  
+    // Y-Axis reading...
+    Wire.beginTransmission(ADXAddress);
+    Wire.write(Register_Y0);
+    Wire.write(Register_Y1);
+    Wire.endTransmission();
+    Wire.requestFrom(ADXAddress, 2);
+    if (Wire.available() <= 2);
+    {
+      Y0 = Wire.read();
+      Y1 = Wire.read();
+      Y1 = Y1 << 8;
+      Y_out = Y0 + Y1;
+    }
+    // Z-Axis reading...
+    Wire.beginTransmission(ADXAddress);
+    Wire.write(Register_Z0);
+    Wire.write(Register_Z1);
+    Wire.endTransmission();
+    Wire.requestFrom(ADXAddress, 2);
+    if (Wire.available() <= 2);
+    {
+      Z0 = Wire.read();
+      Z1 = Wire.read();
+      Z1 = Z1 << 8;
+      Z_out = Z0 + Z1;
+    }
+   
+    Xg = X_out / 256.00; //Convert the output result into the acceleration g, accurate to 2 decimal points.
+    Yg = Y_out / 256.00;
+    Zg = Z_out / 256.00;
+  
+    Xangle = X_angle(Xg, Yg, Zg, degreeToRadControl);
+    Yangle = Y_angle(Xg, Yg, Zg, degreeToRadControl);
+    Zangle = Z_angle(Xg, Yg, Zg, degreeToRadControl);
+  
+    // Creating range ratio for color value, angle in radians, max 3radians.
+    redIn = (255*(Xangle/3));
+    greenIn = (255*(Yangle/3));
+    blueIn = (255*(Zangle/3));
+  
+  
+    color(redIn, greenIn, blueIn);
   } else {
     adjustmentAllowed = 0;
   }
-  
-    
-  //ADXL345
-
-  // X-Axis reading...
-  Wire.beginTransmission(ADXAddress);
-  Wire.write(Register_X0);
-  Wire.write(Register_X1);
-  Wire.endTransmission();
-  Wire.requestFrom(ADXAddress, 2);
-  if (Wire.available() <= 2);
-  {
-    X0 = Wire.read();
-    X1 = Wire.read();
-    X1 = X1 << 8;
-    X_out = X0 + X1;
-  }
-
-  // Y-Axis reading...
-  Wire.beginTransmission(ADXAddress);
-  Wire.write(Register_Y0);
-  Wire.write(Register_Y1);
-  Wire.endTransmission();
-  Wire.requestFrom(ADXAddress, 2);
-  if (Wire.available() <= 2);
-  {
-    Y0 = Wire.read();
-    Y1 = Wire.read();
-    Y1 = Y1 << 8;
-    Y_out = Y0 + Y1;
-  }
-  // Z-Axis reading...
-  Wire.beginTransmission(ADXAddress);
-  Wire.write(Register_Z0);
-  Wire.write(Register_Z1);
-  Wire.endTransmission();
-  Wire.requestFrom(ADXAddress, 2);
-  if (Wire.available() <= 2);
-  {
-    Z0 = Wire.read();
-    Z1 = Wire.read();
-    Z1 = Z1 << 8;
-    Z_out = Z0 + Z1;
-  }
- 
-  Xg = X_out / 256.00; //Convert the output result into the acceleration g, accurate to 2 decimal points.
-  Yg = Y_out / 256.00;
-  Zg = Z_out / 256.00;
-
-  Xangle = X_angle(Xg, Yg, Zg, degreeToRadControl);
-  Yangle = Y_angle(Xg, Yg, Zg, degreeToRadControl);
-  Zangle = Z_angle(Xg, Yg, Zg, degreeToRadControl);
-
-  // Creating range ratio for color value, angle in radians, max 3radians.
-  redIn = (255*(Xangle/3));
-  greenIn = (255*(Yangle/3));
-  blueIn = (255*(Zangle/3));
-
-
-  color(redIn, greenIn, blueIn);
 
   Serial.print("Adjustment Allowed=");
   Serial.print(adjustmentAllowed);
