@@ -1,5 +1,5 @@
 {
     "board": "arduino:avr:uno",
     "port": "/dev/ttyACM0",
-    "sketch": "WS2812/rgbInclineControl.ino"
+    "sketch": "accelerometer/rgb-accelerometer/rgb-accelerometer.ino"
 }

@@ -7,14 +7,17 @@
 /*************************************************************************/
 // Controller Inputs
 
-// Used to convert radians to degrees, set to 1/1 to keep output to radians
+const int redPin = 11; // R petal on RGB LED module connected to digital pin 11 
+const int greenPin = 10; // G petal on RGB LED module connected to digital pin 10 
+const int bluePin = 9; // B petal on RGB LED module connected to digital pin 9 
+const int delayTime = 50; // milliseconds
+
+// Used to convert radians to degrees, set to 1/1 to keep output to degrees
 int degreeToRadControl = PI/PI;
 
 // Axis Adjustment Toggle and pins
-int XadjustmentAllowed = 0;
-int YadjustmentAllowed = 0;
-const int XtogglePin = 12;
-const int YtogglePin = 8;
+int adjustmentAllowed = 0;
+const int togglePin = 12;
 
 // Accelerometer declarations and imports
 #include <Wire.h>  //Call the I2C library built in Arduino
@@ -29,13 +32,14 @@ const int YtogglePin = 8;
 #define Register_Z1 0x37
 
 int ADXAddress = 0x53;  //I2C address
-// int reading = 0;
-// int val = 0;
+int reading = 0;
+int val = 0;
 int X0, X1, X_out;
 int Y0, Y1, Y_out;
 int Z1, Z0, Z_out;
 double Xg, Yg, Zg;
 double Xangle, Yangle, Zangle;
+int redIn, greenIn, blueIn;
 int singleHUE;
 
 // FastLED Strip definitions
@@ -44,7 +48,7 @@ int singleHUE;
 
 #define LED_PIN 5
 #define NUM_LEDS 20
-int BRIGHTNESS = 100;
+#define BRIGHTNESS 100
 #define LED_TYPE WS2812
 #define COLOR_ORDER GRB
 CRGB leds[NUM_LEDS];
@@ -68,6 +72,14 @@ void fillAllLEDs(int hue)
   }
 }
 
+// SINGLE RGB Color writing
+// void color (unsigned char red, unsigned char green, unsigned char blue) // the color generating function 
+// { 
+// analogWrite(redPin, red); 
+// analogWrite(greenPin, green); 
+// analogWrite(bluePin, blue); 
+// }
+
 // Calculating radians and then converting to degrees with atan(param) * (180/PI);
 //    adding 1.5 radians to end to make range from 0rad to 3rad instead of -1.5rad to 1.5rad
 double X_angle(double Xg, double Yg, double Zg, int degreeControl) {
@@ -82,6 +94,7 @@ double Z_angle(double Xg, double Yg, double Zg, int degreeControl) {
   return (atan(Zg/(sqrt((Yg*Yg) + (Xg*Xg))))*degreeControl) + 1.5;
 }
 
+// Calculating the radians and using it for BRIGHTNESS
 
 // Toggle function for signal input
 //    - Write a function that accepts a signal input with a button
@@ -91,6 +104,9 @@ double Z_angle(double Xg, double Yg, double Zg, int degreeControl) {
 //int toggleAxisAdjustment(adjustmentAllowed) {
 //  if (adjustmentAllowed === 0)
 //}
+
+/******************************************************/
+
 
 /**************************************************************************/
 void setup()
@@ -102,11 +118,16 @@ void setup()
   FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   FastLED.setBrightness(BRIGHTNESS);
 
-  //initialize the X-toggle pin as input
-  pinMode(XtogglePin,INPUT);
-
-  //initialize the Y-toggle pin as input
-  pinMode(YtogglePin,INPUT);
+  // currentPalette = RainbowColors_p;
+  // currentBlending = LINEARBLEND;
+  
+  //initialize the toggle pin as input
+  pinMode(togglePin,INPUT);
+  
+  // SINGLE RGB LED
+  // pinMode(redPin, OUTPUT); // sets the redPin to be an output 
+  // pinMode(greenPin, OUTPUT); // sets the greenPin to be an output 
+  // pinMode(bluePin, OUTPUT); // sets the bluePin to be an output 
 
   //ADXL345
   Serial.begin(9600);//Set the baud rate of serial monitor as 9600bps
@@ -124,94 +145,93 @@ void setup()
 } 
 /***************************************************************************/
 void loop() // run over and over again 
-{     
-  //ADXL345
-  // X-Axis reading...
-  Wire.beginTransmission(ADXAddress);
-  Wire.write(Register_X0);
-  Wire.write(Register_X1);
-  Wire.endTransmission();
-  Wire.requestFrom(ADXAddress, 2);
-  if (Wire.available() <= 2);
-  {
-    X0 = Wire.read();
-    X1 = Wire.read();
-    X1 = X1 << 8;
-    X_out = X0 + X1;
-  }
-
-  // Y-Axis reading...
-  Wire.beginTransmission(ADXAddress);
-  Wire.write(Register_Y0);
-  Wire.write(Register_Y1);
-  Wire.endTransmission();
-  Wire.requestFrom(ADXAddress, 2);
-  if (Wire.available() <= 2);
-  {
-    Y0 = Wire.read();
-    Y1 = Wire.read();
-    Y1 = Y1 << 8;
-    Y_out = Y0 + Y1;
-  }
-  // Z-Axis reading...
-  Wire.beginTransmission(ADXAddress);
-  Wire.write(Register_Z0);
-  Wire.write(Register_Z1);
-  Wire.endTransmission();
-  Wire.requestFrom(ADXAddress, 2);
-  if (Wire.available() <= 2);
-  {
-    Z0 = Wire.read();
-    Z1 = Wire.read();
-    Z1 = Z1 << 8;
-    Z_out = Z0 + Z1;
-  }
-
-  //Convert the output result into the acceleration g, accurate to 2 decimal points.
-  Xg = X_out / 256.00; 
-  Yg = Y_out / 256.00;
-  Zg = Z_out / 256.00;
-
-  Xangle = X_angle(Xg, Yg, Zg, degreeToRadControl);
-  Yangle = Y_angle(Xg, Yg, Zg, degreeToRadControl);
-  Zangle = Z_angle(Xg, Yg, Zg, degreeToRadControl);
-
-  // Read the state of the toggle pins and check if the buttons are pressed
+{
+  // Read the state of the toggle pin and check if the buttong is pressed
   // if it is the state is HIGH
-  if (digitalRead(XtogglePin) == HIGH)
-  {
-    XadjustmentAllowed = 1;
+  if (digitalRead(togglePin) == HIGH) {
+    adjustmentAllowed = 1;
+      
+    //ADXL345
+  
+    // X-Axis reading...
+    Wire.beginTransmission(ADXAddress);
+    Wire.write(Register_X0);
+    Wire.write(Register_X1);
+    Wire.endTransmission();
+    Wire.requestFrom(ADXAddress, 2);
+    if (Wire.available() <= 2);
+    {
+      X0 = Wire.read();
+      X1 = Wire.read();
+      X1 = X1 << 8;
+      X_out = X0 + X1;
+    }
+  
+    // Y-Axis reading...
+    Wire.beginTransmission(ADXAddress);
+    Wire.write(Register_Y0);
+    Wire.write(Register_Y1);
+    Wire.endTransmission();
+    Wire.requestFrom(ADXAddress, 2);
+    if (Wire.available() <= 2);
+    {
+      Y0 = Wire.read();
+      Y1 = Wire.read();
+      Y1 = Y1 << 8;
+      Y_out = Y0 + Y1;
+    }
+    // Z-Axis reading...
+    Wire.beginTransmission(ADXAddress);
+    Wire.write(Register_Z0);
+    Wire.write(Register_Z1);
+    Wire.endTransmission();
+    Wire.requestFrom(ADXAddress, 2);
+    if (Wire.available() <= 2);
+    {
+      Z0 = Wire.read();
+      Z1 = Wire.read();
+      Z1 = Z1 << 8;
+      Z_out = Z0 + Z1;
+    }
+   
+    Xg = X_out / 256.00; //Convert the output result into the acceleration g, accurate to 2 decimal points.
+    Yg = Y_out / 256.00;
+    Zg = Z_out / 256.00;
+  
+    Xangle = X_angle(Xg, Yg, Zg, degreeToRadControl);
+    Yangle = Y_angle(Xg, Yg, Zg, degreeToRadControl);
+    Zangle = Z_angle(Xg, Yg, Zg, degreeToRadControl);
+  
+    // Creating range ratio for color value, angle in radians, max 3radians.
+    // redIn = (255*(Xangle/3));
+    // greenIn = (255*(Yangle/3));
+    // blueIn = (255*(Zangle/3));
+    // color(redIn, greenIn, blueIn);
+
     // RGB STRIP Hue setting based on ADXL345 X-Axis ONLY
     singleHUE = (255 * (Xangle / 3));
-
     // RGB STRIP
     fillAllLEDs(singleHUE);
     // fill_solid(&(leds[i]), 10 /*number of leds*/, CHSV(224, 187, 255));
     FastLED.show();
+
   } else {
-    XadjustmentAllowed = 0;
+    adjustmentAllowed = 0;
   }
 
-  if (digitalRead(YtogglePin) == HIGH)
-  {
-    YadjustmentAllowed = 1;
-    BRIGHTNESS = (255 * (Yangle / 3));
-    FastLED.setBrightness(BRIGHTNESS);
-  }
-  else
-  {
-    YadjustmentAllowed = 0;
-  }
-
-  Serial.print("X-Allowed=");
-  Serial.print(XadjustmentAllowed);
-  Serial.print("\tY-Allowed=");
-  Serial.print(YadjustmentAllowed);
-  Serial.print("\tBrightness=");
-  Serial.print(BRIGHTNESS);
+  Serial.print("Adjustment Allowed=");
+  Serial.print(adjustmentAllowed);
+  // Serial.print("\tRed=");
+  // Serial.print(redIn);
+  // Serial.print("\tGreen=");
+  // Serial.print(greenIn);
+  // Serial.print("\tBlue=");
+  // Serial.println(blueIn);
   Serial.print("\tHue=");
   Serial.println(singleHUE);
 
-  // Adjust the value to change the refresh rate.
+  // delay(delayTime); // Adjust the value to change the refresh rate.
   FastLED.delay(1000 / UPDATES_PER_SECOND);
 } 
+
+
