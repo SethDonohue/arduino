@@ -4,6 +4,7 @@
 //      - Can use one button to cycle through and show a signal LED that tells which axis you are adjusting
 //        - OR have the LED's flash a count for X, Y or Z axis.
 // TODO: HOW? To get Z-axis to be adjustable?
+// TODO: Use Z Axis and hand up-down motion to turn off an on lights?
 /*************************************************************************/
 // Controller Inputs
 
@@ -13,7 +14,7 @@ int degreeToRadControl = PI/PI;
 // Axis Adjustment Toggle and pins
 int XadjustmentAllowed = 0;
 int YadjustmentAllowed = 0;
-const int XtogglePin = 12;
+const int XtogglePin = 9;
 const int YtogglePin = 8;
 
 // Accelerometer declarations and imports
@@ -42,7 +43,7 @@ int singleHUE;
 
 #include <FastLED.h>
 
-#define LED_PIN 5
+#define LED_PIN 7
 #define NUM_LEDS 20
 int BRIGHTNESS = 100;
 #define LED_TYPE WS2812
