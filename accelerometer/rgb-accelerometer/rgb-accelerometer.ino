@@ -53,6 +53,8 @@ int singleHUE;
 int BRIGHTNESS = 100;
 #define LED_TYPE WS2812
 #define COLOR_ORDER GRB
+
+
 CRGB leds[NUM_LEDS];
 
 #define UPDATES_PER_SECOND 100
@@ -79,6 +81,27 @@ double Y_angle(double Xg, double Yg, double Zg, int degreeControl) {
 
 double Z_angle(double Xg, double Yg, double Zg, int degreeControl) {
   return (atan(Zg/(sqrt((Yg*Yg) + (Xg*Xg))))*degreeControl) + 1.5;
+}
+
+// FASTLed Patterns  - taken from https://www.tweaking4all.com/hardware/arduino/adruino-led-strip-effects/
+// Rainbow - https://github.com/Resseguie/FastLED-Patterns/blob/master/fastled-patterns.ino
+void rainbow(int cycles, int speed) {
+  if(cycles == 0){
+	for(int i=0; i < NUM_LEDS; i++){
+	  // leds[i] = Wheel(((i*256/NUM_LEDS)) & 255);
+	  leds[i].setHue((i*256)/NUMLEDS);
+	}
+	FastLED.show();
+  }else{
+	for(int i=0; i < 256*cycles; i++){
+	  for(int j=0; j < NUM_LEDS; j++){
+		// leds[i] = Wheel(((j*256) + i) & 255);
+		leds[i].setHue((j*256) + i);
+	  }
+	  FastLED.show();
+	  FastLED.delay(speed);
+	}
+  }
 }
 
 /**************************************************************************/
@@ -277,6 +300,7 @@ void loop() // run over and over again
   // Tap Detection
   if(adxl.triggered(interrupts, ADXL345_SINGLE_TAP)){
     Serial.println("*** TAP ***");
+	
      // TODO: Flash White, Full Brightness, then fade out.
   } 
   
