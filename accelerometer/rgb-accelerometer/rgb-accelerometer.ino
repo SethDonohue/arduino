@@ -24,6 +24,9 @@ const int YtogglePin = 8;
 #include <Wire.h>  //Call the I2C library built in Arduino
 #include <SparkFun_ADXL345.h> // SparkFun ADXL345 Library
 
+// TODO: Is the below needed or does Wire do the same thing?
+ ADXL345 adxl = ADXL345();             // USE FOR I2C COMMUNICATION
+
 //Set the address of the register
 #define Register_ID 0
 #define Register_2D 0x2D
@@ -107,7 +110,7 @@ void setup()
   Serial.print("Degree to Radian Control set to: ");
   Serial.println(degreeToRadControl);
 
-  // -------------- TAP DETECTION SETUP --------------
+  // -------------- TAP Detection Setup --------------
   adxl.powerOn();                     // Power on the ADXL345
 
   adxl.setRangeSetting(16);           // Give the range settings
@@ -155,7 +158,7 @@ void setup()
 /***************************************************************************/
 void loop() // run over and over again 
 {     
-  //ADXL345
+  // -------------- RGB-Accelerometer Control Main Program --------------
   // X-Axis reading...
   Wire.beginTransmission(ADXAddress);
   Wire.write(Register_X0);
@@ -212,7 +215,7 @@ void loop() // run over and over again
   {
     XadjustmentAllowed = 1;
     // RGB STRIP Hue setting based on ADXL345 X-Axis ONLY
-    singleHUE = (255 * (Xangle / 3));
+    singleHUE = (255 * (Xangle / 3)); // Radians
 
     // RGB STRIP
     fillAllLEDs(singleHUE);
@@ -225,7 +228,7 @@ void loop() // run over and over again
   if (digitalRead(YtogglePin) == HIGH)
   {
     YadjustmentAllowed = 1;
-    BRIGHTNESS = (255 * (Yangle / 3));
+    BRIGHTNESS = (255 * (Yangle / 3)); // Radians
     FastLED.setBrightness(BRIGHTNESS);
   }
   else
@@ -242,6 +245,41 @@ void loop() // run over and over again
   Serial.print("\tHue=");
   Serial.println(singleHUE);
 
+  // -------------- TAP Detection Main Program --------------
+  int x,y,z;   
+  adxl.readAccel(&x, &y, &z);         // Read the accelerometer values and store them in variables declared above x,y,z
+
+  // Free Fall Detection
+  if(adxl.triggered(interrupts, ADXL345_FREE_FALL)){
+    Serial.println("*** FREE FALL ***");
+    // TODO: Cycle through colors when freefalling
+  } 
+  
+  // Inactivity
+  if(adxl.triggered(interrupts, ADXL345_INACTIVITY)){
+    Serial.println("*** INACTIVITY ***");
+     // TODO: Can I use this to fade out the LED's?
+  }
+  
+  // Activity
+  if(adxl.triggered(interrupts, ADXL345_ACTIVITY)){
+    Serial.println("*** ACTIVITY ***"); 
+     // TODO: Can I use this to fade in the LED's?
+  }
+  
+  // Double Tap Detection
+  if(adxl.triggered(interrupts, ADXL345_DOUBLE_TAP)){
+    Serial.println("*** DOUBLE TAP ***");
+     // TODO: USE This to Cycle Through LED patterns
+     //       - Find Pattern Library!
+  }
+  
+  // Tap Detection
+  if(adxl.triggered(interrupts, ADXL345_SINGLE_TAP)){
+    Serial.println("*** TAP ***");
+     // TODO: Flash White, Full Brightness, then fade out.
+  } 
+  
   // Adjust the value to change the refresh rate.
   FastLED.delay(1000 / UPDATES_PER_SECOND);
 } 
