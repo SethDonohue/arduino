@@ -1,10 +1,13 @@
 // Seth Donohue - RGB LED controlled by 3axis tilt of ADXL345
-// TODO: ADD toggle input to allow adustment of axis individually.
-//      - may need  different buttons?
+// DONE: ADD toggle input to allow adustment of axis individually.
+//      - may need  different buttons? Answer: Yup.
 //      - Can use one button to cycle through and show a signal LED that tells which axis you are adjusting
 //        - OR have the LED's flash a count for X, Y or Z axis.
-// TODO: HOW? To get Z-axis to be adjustable?
+//        - Solution: USe one momentary button for X and one for Y. LED strip indicates if adustment is working or not.
+// DONE: HOW? To get Z-axis to be adjustable? Answer: Not posible at this time.
 // TODO: Use Z Axis and hand up-down motion to turn off an on lights?
+// TODO: Use Single tap for high fives to turn LED's white quickly and fade away.
+// TODO: Use Double Tap to cycle through LED patterns.
 /*************************************************************************/
 // Controller Inputs
 
@@ -19,6 +22,8 @@ const int YtogglePin = 8;
 
 // Accelerometer declarations and imports
 #include <Wire.h>  //Call the I2C library built in Arduino
+#include <SparkFun_ADXL345.h> // SparkFun ADXL345 Library
+
 //Set the address of the register
 #define Register_ID 0
 #define Register_2D 0x2D
@@ -30,8 +35,6 @@ const int YtogglePin = 8;
 #define Register_Z1 0x37
 
 int ADXAddress = 0x53;  //I2C address
-// int reading = 0;
-// int val = 0;
 int X0, X1, X_out;
 int Y0, Y1, Y_out;
 int Z1, Z0, Z_out;
@@ -40,11 +43,10 @@ double Xangle, Yangle, Zangle;
 int singleHUE;
 
 // FastLED Strip definitions
-
 #include <FastLED.h>
 
 #define LED_PIN 7
-#define NUM_LEDS 20
+#define NUM_LEDS 100
 int BRIGHTNESS = 100;
 #define LED_TYPE WS2812
 #define COLOR_ORDER GRB
@@ -53,13 +55,6 @@ CRGB leds[NUM_LEDS];
 #define UPDATES_PER_SECOND 100
 
 // Function declarations
-
-// RGBPalette16 currentPalette;
-// TBlendType currentBlending;
-
-// extern CRGBPalette16 myRedWhiteBluePalette;
-// extern const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;
-
 // RGB Strip FILL ALL base don Hue
 void fillAllLEDs(int hue)
 {
@@ -82,16 +77,6 @@ double Y_angle(double Xg, double Yg, double Zg, int degreeControl) {
 double Z_angle(double Xg, double Yg, double Zg, int degreeControl) {
   return (atan(Zg/(sqrt((Yg*Yg) + (Xg*Xg))))*degreeControl) + 1.5;
 }
-
-
-// Toggle function for signal input
-//    - Write a function that accepts a signal input with a button
-//    - ON: axis adjustment changes RGB
-//    - OFF: axis adjustment disabled
-//
-//int toggleAxisAdjustment(adjustmentAllowed) {
-//  if (adjustmentAllowed === 0)
-//}
 
 /**************************************************************************/
 void setup()
