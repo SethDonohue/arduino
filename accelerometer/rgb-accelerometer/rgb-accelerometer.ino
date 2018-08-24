@@ -104,6 +104,25 @@ void rainbow(int cycles, int speed) {
   }
 }
 
+// Flash to white and Fade out
+// TODO: Figure out mathematical solution to a proper fade, currently I just experiment and the 
+//       delay is roughly equivalent to the cycles to have a linear decrease in brigthness.
+void whiteFlash(int flashLength, int fadeTime) {
+  // fadeTime is in seconds and is multipled times 100 to workk with our step/delay of 10ms
+  // example: fadeTime = 5, 5 * 100 = 500, 500 * 10ms delay  = 5000ms total time.
+  for(int i=0; i < NUM_LEDS; i++){
+    leds[i].setRGB(255, 255, 255);
+  }
+  FastLED.show();
+  FastLED.delay(flashLength);
+
+  for(int j=0;j < fadeTime * 100; j++) {
+    FastLED.setBrightness(BRIGHTNESS);
+    FastLED.delay(10);
+  }
+}
+
+
 /**************************************************************************/
 void setup()
 {
@@ -295,13 +314,14 @@ void loop() // run over and over again
     Serial.println("*** DOUBLE TAP ***");
      // TODO: USE This to Cycle Through LED patterns
      //       - Find Pattern Library!
+    rainbow(50, 5);
   }
   
   // Tap Detection
   if(adxl.triggered(interrupts, ADXL345_SINGLE_TAP)){
     Serial.println("*** TAP ***");
-	
-     // TODO: Flash White, Full Brightness, then fade out.
+// DONE: Flash White, Full Brightness, then fade out
+    whiteFlash(100, 5)
   } 
   
   // Adjust the value to change the refresh rate.
