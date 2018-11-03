@@ -361,20 +361,20 @@ void loop() // run over and over again
   // }
   
   // Double Tap Detection
-  if(adxl.triggered(interrupts, ADXL345_DOUBLE_TAP)){
-    Serial.println("*** DOUBLE TAP ***");
-    // TODO: USE This to Cycle Through LED patterns
-    //       - Find Pattern Library!
-    FastLED.setBrightness(100);
-    rainbow(5, 5);
-  }
+  // if(adxl.triggered(interrupts, ADXL345_DOUBLE_TAP)){
+  //   Serial.println("*** DOUBLE TAP ***");
+  //   // TODO: USE This to Cycle Through LED patterns
+  //   //       - Find Pattern Library!
+  //   FastLED.setBrightness(100);
+  //   rainbow(5, 5);
+  // }
   
   // Tap Detection
-  if(adxl.triggered(interrupts, ADXL345_SINGLE_TAP)){
-    Serial.println("*** TAP ***");
-// DONE: Flash White, Full Brightness, then fade out
-    whiteFlash(100, 5);
-  } 
+  // if(adxl.triggered(interrupts, ADXL345_SINGLE_TAP)){
+  //   Serial.println("*** TAP ***");
+  //     // DONE: Flash White, Full Brightness, then fade out
+  //   whiteFlash(100, 5);
+  // } 
   
   // Adjust the value to change the refresh rate.
   FastLED.delay(1000 / UPDATES_PER_SECOND);
