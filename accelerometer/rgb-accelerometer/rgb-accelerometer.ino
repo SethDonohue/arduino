@@ -57,7 +57,7 @@ int BRIGHTNESS = 100;
 
 CRGB leds[NUM_LEDS];
 
-#define UPDATES_PER_SECOND 100
+#define UPDATES_PER_SECOND 10
 
 // Function declarations
 // RGB Strip FILL ALL base don Hue
@@ -144,7 +144,7 @@ void whiteFlash(int flashLength, int fadeTime) {
 
 // Bootup Loop
 void bootupLoop() {
-  Serial.println('++++ Bootup Sequence');
+  Serial.println('+Bootup Sequence');
   for(int i=0; i < NUM_LEDS ;i++){
     leds[i].setRGB(255,255,255);
     FastLED.show();
@@ -174,7 +174,7 @@ void setup()
   pinMode(YtogglePin,INPUT);
 
   //ADXL345
-  Serial.begin(9600);//Set the baud rate of serial monitor as 9600bps
+  Serial.begin(115200);//Set the baud rate of serial monitor as 9600bps
   delay(100);
   Wire.begin();  //Initialize I2C
   delay(100);
@@ -287,9 +287,9 @@ void loop() // run over and over again
 
   // Read the state of the toggle pins and check if the buttons are pressed
   // if it is the state is HIGH
-  if (digitalRead(XtogglePin) == HIGH)
-  {
-    XadjustmentAllowed = 1;
+  //if (digitalRead(XtogglePin) == HIGH)
+  //{
+    // XadjustmentAllowed = 1;
     // RGB STRIP Hue setting based on ADXL345 X-Axis ONLY
     singleHUE = (255 * (Xangle / 3)); // Radians
 
@@ -297,29 +297,29 @@ void loop() // run over and over again
     fillAllLEDs(singleHUE);
     // fill_solid(&(leds[i]), 10 /*number of leds*/, CHSV(224, 187, 255));
     FastLED.show();
-  } else {
-    XadjustmentAllowed = 0;
-  }
+  //} else {
+    // XadjustmentAllowed = 0;
+  //}
 
-  if (digitalRead(YtogglePin) == HIGH)
-  {
-    YadjustmentAllowed = 1;
+  //if (digitalRead(YtogglePin) == HIGH)
+  //{
+    // YadjustmentAllowed = 1;
     BRIGHTNESS = (255 * (Yangle / 3)); // Radians
     FastLED.setBrightness(BRIGHTNESS);
-  }
-  else
-  {
-    YadjustmentAllowed = 0;
-  }
+  // }
+  // else
+  // {
+    // YadjustmentAllowed = 0;
+  // }
 
 //  Serial.print("X-Allowed=");
 //  Serial.print(XadjustmentAllowed);
 //  Serial.print("\tY-Allowed=");
 //  Serial.print(YadjustmentAllowed);
-//  Serial.print("\tBrightness=");
-//  Serial.print(BRIGHTNESS);
-//  Serial.print("\tHue=");
-//  Serial.println(singleHUE);
+ Serial.print("\tBrightness=");
+ Serial.print(BRIGHTNESS);
+ Serial.print("\tHue=");
+ Serial.println(singleHUE);
 
   // -------------- TAP Detection Main Program --------------
   int x,y,z;   
@@ -348,17 +348,17 @@ void loop() // run over and over again
   } 
   
   // Inactivity
-  if(adxl.triggered(interrupts, ADXL345_INACTIVITY)){
-    Serial.println("*** INACTIVITY ***");
-     // TODO: Can I use this to fade out the LED's?
-//     FastLED.setBrightness(25);
-  }
+  // if(adxl.triggered(interrupts, ADXL345_INACTIVITY)){
+  //   Serial.println("*** INACTIVITY ***");
+  //    // TODO: Can I use this to fade out the LED's?
+  //   FastLED.setBrightness(25);
+  // }
   
   // Activity
-  if(adxl.triggered(interrupts, ADXL345_ACTIVITY)){
-    Serial.println("*** ACTIVITY ***"); 
-     // TODO: Can I use this to fade in the LED's?
-  }
+  // if(adxl.triggered(interrupts, ADXL345_ACTIVITY)){
+  //   Serial.println("*** ACTIVITY ***"); 
+  //    // TODO: Can I use this to fade in the LED's?
+  // }
   
   // Double Tap Detection
   if(adxl.triggered(interrupts, ADXL345_DOUBLE_TAP)){

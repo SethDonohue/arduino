@@ -23,8 +23,8 @@
 
 /*********** COMMUNICATION SELECTION ***********/
 /*    Comment Out The One You Are Not Using    */
-ADXL345 adxl = ADXL345(10);           // USE FOR SPI COMMUNICATION, ADXL345(CS_PIN);
-//ADXL345 adxl = ADXL345();             // USE FOR I2C COMMUNICATION
+// ADXL345 adxl = ADXL345(10);           // USE FOR SPI COMMUNICATION, ADXL345(CS_PIN);
+ADXL345 adxl = ADXL345();             // USE FOR I2C COMMUNICATION
 
 /****************** INTERRUPT ******************/
 /*      Uncomment If Attaching Interrupt       */
@@ -35,7 +35,7 @@ ADXL345 adxl = ADXL345(10);           // USE FOR SPI COMMUNICATION, ADXL345(CS_P
 /*          Configure ADXL345 Settings         */
 void setup(){
   
-  Serial.begin(9600);                 // Start the serial terminal
+  Serial.begin(115200);                 // Start the serial terminal
   Serial.println("SparkFun ADXL345 Accelerometer Hook Up Guide Example");
   Serial.println();
   
@@ -95,17 +95,18 @@ void loop(){
 
   // Output Results to Serial
   /* UNCOMMENT TO VIEW X Y Z ACCELEROMETER VALUES */  
-  //Serial.print(x);
-  //Serial.print(", ");
-  //Serial.print(y);
-  //Serial.print(", ");
-  //Serial.println(z); 
+  Serial.print(x);
+  Serial.print(", ");
+  Serial.print(y);
+  Serial.print(", ");
+  Serial.println(z); 
   
   ADXL_ISR();
   // You may also choose to avoid using interrupts and simply run the functions within ADXL_ISR(); 
   //  and place it within the loop instead.  
   // This may come in handy when it doesn't matter when the action occurs. 
 
+  delay(500);
 }
 
 /********************* ISR *********************/
@@ -117,10 +118,10 @@ void ADXL_ISR() {
   byte interrupts = adxl.getInterruptSource();
   
   // Free Fall Detection
-  if(adxl.triggered(interrupts, ADXL345_FREE_FALL)){
-    Serial.println("*** FREE FALL ***");
-    //add code here to do when free fall is sensed
-  } 
+  // if(adxl.triggered(interrupts, ADXL345_FREE_FALL)){
+  //   Serial.println("*** FREE FALL ***");
+  //   //add code here to do when free fall is sensed
+  // } 
   
   // Inactivity
   if(adxl.triggered(interrupts, ADXL345_INACTIVITY)){
@@ -135,10 +136,10 @@ void ADXL_ISR() {
   }
   
   // Double Tap Detection
-  if(adxl.triggered(interrupts, ADXL345_DOUBLE_TAP)){
-    Serial.println("*** DOUBLE TAP ***");
-     //add code here to do when a 2X tap is sensed
-  }
+  // if(adxl.triggered(interrupts, ADXL345_DOUBLE_TAP)){
+  //   Serial.println("*** DOUBLE TAP ***");
+  //    //add code here to do when a 2X tap is sensed
+  // }
   
   // Tap Detection
   if(adxl.triggered(interrupts, ADXL345_SINGLE_TAP)){
@@ -146,5 +147,5 @@ void ADXL_ISR() {
      //add code here to do when a tap is sensed
 
      // output to to a pin to turn it on permantely 
-  } 
+  }
 }
