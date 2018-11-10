@@ -16,11 +16,14 @@
 // DONE: Use Single tap for high fives to turn LED's white quickly and fade away.
 // TODO: Use Double Tap to cycle through LED patterns.
 
-/*************************************************************************/
+/***************************************************************/
 // Controller Inputs
 
 // Used to convert radians to degrees, set to 1/1 to keep output to radians
 int degreeToRadControl = PI / PI;
+boolean DEBUG = true;
+//int BAUD_RATE = 115200;
+int UPDATES_PER_SECOND = 10;
 
 // Axis Adjustment Toggle and pins
 int XadjustmentAllowed = 1; // TODO: set back to 0
@@ -29,7 +32,8 @@ const int XtogglePin = 9;
 const int YtogglePin = 8;
 
 // Accelerometer declarations and imports
-#include <Wire.h>             //Call the I2C library built in Arduino
+#include <Wire.h> //Call the I2C library built in Arduino
+#include <SparkFun_ADXL345.h> // SparkFun ADXL345 Library
 
 // TODO: Is the below needed or does Wire do the same thing?
 ADXL345 adxl = ADXL345(); // USE FOR I2C COMMUNICATION
@@ -50,13 +54,10 @@ int Y0, Y1, Y_out;
 int Z1, Z0, Z_out;
 double Xg, Yg, Zg;
 double Xangle, Yangle, Zangle;
+int BRIGHTNESS;
 int singleHUE;
 
-#define UPDATES_PER_SECOND 10 // TODO: ASK; Does this need to be the same on Master & Slave?
-
-// TODO: DEFINE the altSerial here...
-// #include <AltSoftSerial.h>
-// AltSoftSerial BTserial;
+//#define UPDATES_PER_SECOND 10 // TODO: ASK; Does this need to be the same on Master & Slave?
 
 // TODO: IS this where we add a calibration to set the axis back if the device is not orienteded flat?
 // if someInputPin === HIGH ) {
@@ -92,7 +93,13 @@ void setup()
   pinMode(YtogglePin, INPUT);
 
   //ADXL345
-  Serial.begin(115200); //Set the baud rate of serial monitor as 9600bps
+  Serial.begin(115200); //Set the baud rate of serial monitor
+
+  // if (DEBUG) {
+    Serial.print("Serial started at: ");
+    Serial.println(115200);
+  // }
+
   delay(100);
   Wire.begin(); //Initialize I2C
   delay(100);
@@ -100,9 +107,17 @@ void setup()
   Wire.write(Register_2D);
   Wire.write(8);
   Wire.endTransmission();
-  Serial.println("Accelerometer Test ");
-  Serial.print("Degree to Radian Control set to: ");
-  Serial.println(degreeToRadControl);
+
+  if (DEBUG) {
+    Serial.println(__FILE__);
+    Serial.println(__DATE__);
+    Serial.print("Updates / Sec: ");
+    Serial.println(UPDATES_PER_SECOND);
+
+    Serial.println("Accelerometer Test ");
+    Serial.print("Degree to Radian Control set to: ");
+    Serial.println(degreeToRadControl);
+  }
 
   // -------------- TAP Detection Setup --------------
   adxl.powerOn(); // Power on the ADXL345
@@ -215,13 +230,14 @@ void loop() // run over and over again
   // if it is the state is HIGH
   if (digitalRead(XtogglePin) == HIGH) { // TODO: ASK; Can we use Tap Detection here instead of button input?
   // RGB STRIP Hue setting based on X-Axis ONLY
-    singleHUE = (255 * (Xangle / 3)); // Radians
   }
 
   if (digitalRead(YtogglePin) == HIGH) {
     // RGB STRIP BRIGHTNESS setting based on Y-Axis ONLY
-    BRIGHTNESS = (255 * (Yangle / 3)); // Radians
   }
+  
+  BRIGHTNESS = (255 * (Yangle / 3)); // Radians
+  singleHUE = (255 * (Xangle / 3)); // Radians
 
   // RGB STRIP
   // TODO: ADD; This is where we need to SEND a signla over Serial to the Slave device
@@ -231,15 +247,23 @@ void loop() // run over and over again
   // fillAllLEDs(singleHUE);
   // FastLED.show();
   // FastLED.setBrightness(BRIGHTNESS);
-
-  //  Serial.print("X-Allowed=");
-  //  Serial.print(XadjustmentAllowed);
-  //  Serial.print("\tY-Allowed=");
-  //  Serial.print(YadjustmentAllowed);
-  Serial.print("\tBrightness=");
-  Serial.print(BRIGHTNESS);
-  Serial.print("\tHue=");
-  Serial.println(singleHUE);
+  if (DEBUG) {
+    //  Serial.print("X-Allowed=");
+    //  Serial.print(XadjustmentAllowed);
+    //  Serial.print("\tY-Allowed=");
+    //  Serial.print(YadjustmentAllowed);
+    Serial.print("\tBrightness=");
+    Serial.print(BRIGHTNESS);
+    Serial.print("\tHue=");
+    Serial.println(singleHUE);
+  } else {
+    // Format: "<XXX_XXX>" which can be split at underscore.
+    Serial.print("<");
+    Serial.print(BRIGHTNESS);
+    Serial.print("_");
+    Serial.print(singleHUE);
+    Serial.print(">");
+  }
 
   // -------------- TAP Detection Main Program --------------
   int x, y, z;

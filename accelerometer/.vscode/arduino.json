@@ -1,5 +1,5 @@
 {
     "board": "arduino:avr:uno",
     "port": "/dev/ttyACM0",
-    "sketch": "rgb-accelerometer/rgb-accelerometer.ino"
+    "sketch": "bt-master/BT-rgb-accelerometer.ino"
 }
