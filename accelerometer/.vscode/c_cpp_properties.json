@@ -3,6 +3,8 @@
         {
             "name": "Linux",
             "includePath": [
+                "/home/seth/arduino-1.8.5/tools/**",
+                "/home/seth/arduino-1.8.5/hardware/arduino/avr/**",
                 "/home/seth/arduino-1.8.5/hardware/arduino/avr/cores/arduino"
             ],
             "browse": {
@@ -14,7 +16,10 @@
             "intelliSenseMode": "clang-x64",
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "c11",
-            "cppStandard": "c++17"
+            "cppStandard": "c++17",
+            "forcedInclude": [
+                "/home/seth/arduino-1.8.5/hardware/arduino/avr/cores/arduino/Arduino.h"
+            ]
         }
     ],
     "version": 4

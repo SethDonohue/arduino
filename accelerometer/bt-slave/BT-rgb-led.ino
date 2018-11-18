@@ -1,32 +1,39 @@
 // Seth Donohue - RGB LED controlled by 3axis tilt of ADXL345
-// This is the BT Master device code to send the proper HUE and BRIGHTNESS signals to the BT Slave device.
-// Written for use on two Bluno Beetls, but should work on most arduino devices if the serial is setup properly
+// This is the BT SLave device code to receive the proper HUE and BRIGHTNESS signals from the BT Master device.
+// Written for use on two Bluno Beetles, but should work on most arduino devices if the serial is setup properly.
 
 /*************************************************************************/
-// Controller Inputs
-#include <SparkFun_ADXL345.h> // SparkFun ADXL345 Library
 
-// TODO: Is the below needed or does Wire do the same thing?
+// #include <string.h>
+// #include <stddef.h>
 
 // FastLED Strip definitions
 #include <FastLED.h>
+
+boolean DEBUG = false;
+int UPDATES_PER_SECOND = 10;
+int BRIGHTNESS = 100;
+int singleHUE = 75;
 
 #define LED_PIN 5
 #define NUM_LEDS 60
 #define LED_TYPE WS2812
 #define COLOR_ORDER GRB
-int BRIGHTNESS = 100;
-int singleHUE = 75;
 
 CRGB leds[NUM_LEDS];
 
-#define UPDATES_PER_SECOND 10 // TODO: ASK; Does this need to be the same on Master & Slave?
+// Incoming Data definitions
+// const byte maxDataLength = 7; // maxDataLength is the maximum length allowed for received data.
+// char receivedChars[maxDataLength + 1];
+// boolean newData = false; // newData is used to determine if there is a new command
 
-// TODO: DEFINE the altSerial here...
-// #include <AltSoftSerial.h>
-// AltSoftSerial BTserial;
+const byte numChars = 32;
+char receivedChars[numChars];
+char tempChars[numChars];
+boolean newData = false;
 
-// Function declarations
+// ---------- LED Function declarations ----------
+
 // RGB Strip FILL ALL base don Hue
 void fillAllLEDs(int hue)
 {
@@ -112,7 +119,7 @@ void whiteFlash(int flashLength, int fadeTime)
 // Bootup Loop
 void bootupLoop()
 {
-  Serial.println('+Bootup Sequence');
+  Serial.println("+Bootup Sequence");
   for (int i = 0; i < NUM_LEDS; i++)
   {
     leds[i].setRGB(255, 255, 255);
@@ -124,100 +131,176 @@ void bootupLoop()
   flash(3, 100, 25, 200);
 }
 
+// ---------- Incoming Data Function declarations ----------
+
+// void processCommand()
+// {
+//   newData = false;
+//   if(DEBUG)
+//   {
+//     Serial.print('recevied data = ');
+//     Serial.println(receivedChars);
+//   }
+//   // Split string into two numbers
+
+//   if (strcmp ())
+// }
+
+// void recvWithStartEndMarkers()
+// {
+//   static boolean recvInProgress = false;
+//   static byte index = 0;
+//   char startMarker = '<';
+//   char endMarker = '>';
+
+//   if(Serial.available() > 0)
+//   {
+//     char rc = Serial.read();
+//     if (recvInProgress == true){
+//       if (rc != endMarker)
+//       {
+//         if ( index < maxDataLength) { receivedChars[index] = rc; index++}
+//       }
+//       else
+//       {
+//         receivedChars[index] = '\0' // terminate the string
+//         recvInProgress = false;
+//         index = 0;
+//         newData = true;
+//       }
+//     }
+//     else if (rc == startMarker) { recvInProgress = true; }
+//   }
+// }
+
 /**************************************************************************/
 void setup()
 {
   // -------------- RGB-Accelerometer LED Color Control Setup --------------
-  delay(3000); // power-up safety delay
+  delay(500); // power-up safety delay
 
   // RGB STRIP setup
   FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   FastLED.setBrightness(BRIGHTNESS);
 
   // Serial Monitor Debug Setup
-  Serial.begin(9600); //Set the baud rate of serial monitor as 9600bps
-  delay(100);
-  delay(100);
-  Serial.println("Serial Monitor Test...");
-  Serial.print("Brightness: ");
-  Serial.print(BRIGHTNESS);
-  Serial.print(" singleHUE: ");
-  Serial.print(singleHUE);
-  Serial.print(" LED_PIN: ");
-  Serial.print(BRIGHTNESS);
-  Serial.print(" NUM_LEDS: ");
-  Serial.println(singleHUE);
+  Serial.begin(115200); //Set the baud rate of serial monitor
+  Serial.println("This program expects 2 pieces of data - INT Brightness, INT SingleHue");
+  Serial.println("Enter data in this format   <123_456>");
+  Serial.println("<Arduino is Ready>");
+  Serial.println();
 
-  bootupLoop();
+  if (DEBUG)
+  {
+    Serial.print("Serial started at: ");
+    Serial.println(115200);
+
+    Serial.println(__FILE__);
+    Serial.println(__DATE__);
+    Serial.print("Updates / Sec: ");
+    Serial.println(UPDATES_PER_SECOND);
+  }
+
+  delay(100);
+  // Serial.print("Brightness: ");
+  // Serial.print(BRIGHTNESS);
+  // Serial.print(" singleHUE: ");
+  // Serial.print(singleHUE);
+  // Serial.print(" LED_PIN: ");
+  // Serial.print(BRIGHTNESS);
+  // Serial.print(" NUM_LEDS: ");
+  // Serial.println(singleHUE);
+
+  // bootupLoop();
 }
 
 /***************************************************************************/
 void loop() // run over and over again
 {
+
+  // // Adjust the value to change the refresh rate.
+  FastLED.delay(1000 / UPDATES_PER_SECOND);
+  recvWithStartEndMarkers();
+  // showNewData();
+  if (newData == true)
+  {
+    strcpy(tempChars, receivedChars);
+    // this temporary copy is necessary to protect the original data
+    //   because strtok() used in parseData() replaces the commas with \0
+    parseData();
+    showParsedData();
+    newData = false;
+  }
+
+  // Set LED
   fillAllLEDs(singleHUE);
   FastLED.show();
   FastLED.setBrightness(BRIGHTNESS);
-  Serial.print("\tBrightness=");
-  Serial.print(BRIGHTNESS);
-  Serial.print("\tHue=");
+}
+
+void recvWithStartEndMarkers()
+{
+  static boolean recvInProgress = false;
+  static byte ndx = 0;
+  char startMarker = '<';
+  char endMarker = '>';
+  char rc;
+
+  while (Serial.available() > 0 && newData == false)
+  {
+    rc = Serial.read();
+
+    if (recvInProgress == true)
+    {
+      if (rc != endMarker)
+      {
+        receivedChars[ndx] = rc;
+        ndx++;
+        if (ndx >= numChars)
+        {
+          ndx = numChars - 1;
+        }
+      }
+      else
+      {
+        receivedChars[ndx] = '\0'; // terminate the string
+        recvInProgress = false;
+        ndx = 0;
+        newData = true;
+      }
+    }
+    else if (rc = startMarker)
+    {
+      recvInProgress = true;
+    }
+  }
+}
+
+void showNewData() {
+  if(newData = true){
+    Serial.print("Received Chars: ");
+    delay(1);
+    Serial.println(receivedChars);
+    newData = false;
+  }
+}
+
+void parseData()
+{ // split the data into its parts
+
+  char *strtokIndx; // this is used by strtok() as an index
+
+  strtokIndx = strtok(tempChars, "_"); // get the first part
+  BRIGHTNESS = atoi(strtokIndx); // convert this part to an integer
+
+  strtokIndx = strtok(NULL, "_"); // this continues where the previous call left off
+  singleHUE = atoi(strtokIndx); // convert this part to an integer
+}
+
+void showParsedData()
+{
+  Serial.print("Brightness: ");
+  Serial.println(BRIGHTNESS);
+  Serial.print("Hue ");
   Serial.println(singleHUE);
-
-  // -------------- TAP Detection Main Program --------------
-  int x, y, z;
-  adxl.readAccel(&x, &y, &z); // Read the accelerometer values and store them in variables declared above x,y,z
-  byte interrupts = adxl.getInterruptSource();
-
-  // Free Fall Detection
-  // if (Received Data String IS "FREEFALL") {
-  //   Serial.println("*** FREE FALL ***");
-  //   // TODO: Cycle through colors when freefalling
-  //   // Tracer to End of Arms.
-  //   FastLED.setBrightness(0);
-  //   FastLED.delay(100);
-
-  //   for (int i = 2; i < NUM_LEDS - 1; i++)
-  //   {
-  //     leds[i - 2].setRGB(0, 0, 0);
-  //     leds[i - 1].setHue(100);
-  //     leds[i].setHue(175);
-  //     leds[i + 1].setHue(250);
-  //     Serial.print(i);
-  //     Serial.print(" ");
-  //     FastLED.setBrightness(150);
-  //     FastLED.show();
-  //     FastLED.delay(50);
-  //   }
-  // }
-
-  // Inactivity
-  // if(adxl.triggered(interrupts, ADXL345_INACTIVITY)){
-  //   Serial.println("*** INACTIVITY ***");
-  //    // TODO: Can I use this to fade out the LED's?
-  //   FastLED.setBrightness(25);
-  // }
-
-  // Activity
-  // if(adxl.triggered(interrupts, ADXL345_ACTIVITY)){
-  //   Serial.println("*** ACTIVITY ***");
-  //    // TODO: Can I use this to fade in the LED's?
-  // }
-
-  // Double Tap Detection
-  // if(adxl.triggered(interrupts, ADXL345_DOUBLE_TAP)){
-  //   Serial.println("*** DOUBLE TAP ***");
-  //   // TODO: USE This to Cycle Through LED patterns
-  //   //       - Find Pattern Library!
-  //   FastLED.setBrightness(100);
-  //   rainbow(5, 5);
-  // }
-
-  // Tap Detection
-  // if(Received Data String IS "TAP"){
-  //   Serial.println("*** TAP ***");
-  //     // DONE: Flash White, Full Brightness, then fade out
-  //   whiteFlash(100, 5);
-  // }
-
-  // Adjust the value to change the refresh rate.
-  FastLED.delay(1000 / UPDATES_PER_SECOND);
 }

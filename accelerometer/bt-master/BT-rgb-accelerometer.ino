@@ -4,7 +4,7 @@
 // TODO: HOW to get axis to ZERO out so this MASTER device can be place on any surface, be
 // TODO: MOVE ALL FastLED code to slave file, BT-rgb-led.ino
 // TODO: ADD serial write to send a chunk of data to Slave device
-//        - ref: http://www.martyncurrey.com/arduino-to-arduino-by-bluetooth/
+//        - ref: uttp://www.martyncurrey.com/arduino-to-arduino-by-bluetooth/
 
 // DONE: ADD toggle input to allow adustment of axis individually.
 //      - may need  different buttons? Answer: Yup.
@@ -21,8 +21,7 @@
 
 // Used to convert radians to degrees, set to 1/1 to keep output to radians
 int degreeToRadControl = PI / PI;
-boolean DEBUG = true;
-//int BAUD_RATE = 115200;
+boolean DEBUG = false;
 int UPDATES_PER_SECOND = 10;
 
 // Axis Adjustment Toggle and pins
@@ -57,8 +56,6 @@ double Xangle, Yangle, Zangle;
 int BRIGHTNESS;
 int singleHUE;
 
-//#define UPDATES_PER_SECOND 10 // TODO: ASK; Does this need to be the same on Master & Slave?
-
 // TODO: IS this where we add a calibration to set the axis back if the device is not orienteded flat?
 // if someInputPin === HIGH ) {
 //  -set xCalibration = X_angle(double Xg, double Yg, double Zg, int degreeControl)???
@@ -92,14 +89,15 @@ void setup()
   //initialize the Y-toggle pin as input
   pinMode(YtogglePin, INPUT);
 
-  //ADXL345
   Serial.begin(115200); //Set the baud rate of serial monitor
 
-  // if (DEBUG) {
+  if (DEBUG)
+  {
     Serial.print("Serial started at: ");
     Serial.println(115200);
-  // }
+  }
 
+  //ADXL345
   delay(100);
   Wire.begin(); //Initialize I2C
   delay(100);
@@ -136,7 +134,7 @@ void setup()
 
   adxl.setInactivityXYZ(1, 0, 0);  // Set to detect inactivity in all the axes "adxl.setInactivityXYZ(X, Y, Z);" (1 == ON, 0 == OFF)
   adxl.setInactivityThreshold(75); // 62.5mg per increment   // Set inactivity // Inactivity thresholds (0-255)
-  adxl.setTimeInactivity(10);      // How many seconds of no activity is inactive?
+  adxl.setTimeInactivity(5);      // How many seconds of no activity is inactive?
 
   adxl.setTapDetectionOnXYZ(0, 0, 1); // Detect taps in the directions turned ON "adxl.setTapDetectionOnX(X, Y, Z);" (1 == ON, 0 == OFF)
 
@@ -263,6 +261,7 @@ void loop() // run over and over again
     Serial.print("_");
     Serial.print(singleHUE);
     Serial.print(">");
+    // Serial.write(BRIGHTNESS);
   }
 
   // -------------- TAP Detection Main Program --------------
@@ -282,7 +281,6 @@ void loop() // run over and over again
   // if(adxl.triggered(interrupts, ADXL345_INACTIVITY)){
   //   Serial.println("*** INACTIVITY ***");
   //    // TODO: Can I use this to fade out the LED's?
-  //   FastLED.setBrightness(25);
   // }
 
   // Activity
