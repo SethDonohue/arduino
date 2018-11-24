@@ -15,10 +15,11 @@ int UPDATES_PER_SECOND = 10;
 int BRIGHTNESS = 100;
 int singleHUE = 75;
 
-#define LED_PIN 5
-#define NUM_LEDS 60
-#define LED_TYPE WS2812
-#define COLOR_ORDER GRB
+#define DATA_PIN 5
+#define CLOCK_PIN 5
+#define NUM_LEDS 10
+#define LED_TYPE APA102
+#define COLOR_ORDER RGB
 
 CRGB leds[NUM_LEDS];
 
@@ -133,111 +134,6 @@ void bootupLoop()
 
 // ---------- Incoming Data Function declarations ----------
 
-// void processCommand()
-// {
-//   newData = false;
-//   if(DEBUG)
-//   {
-//     Serial.print('recevied data = ');
-//     Serial.println(receivedChars);
-//   }
-//   // Split string into two numbers
-
-//   if (strcmp ())
-// }
-
-// void recvWithStartEndMarkers()
-// {
-//   static boolean recvInProgress = false;
-//   static byte index = 0;
-//   char startMarker = '<';
-//   char endMarker = '>';
-
-//   if(Serial.available() > 0)
-//   {
-//     char rc = Serial.read();
-//     if (recvInProgress == true){
-//       if (rc != endMarker)
-//       {
-//         if ( index < maxDataLength) { receivedChars[index] = rc; index++}
-//       }
-//       else
-//       {
-//         receivedChars[index] = '\0' // terminate the string
-//         recvInProgress = false;
-//         index = 0;
-//         newData = true;
-//       }
-//     }
-//     else if (rc == startMarker) { recvInProgress = true; }
-//   }
-// }
-
-/**************************************************************************/
-void setup()
-{
-  // -------------- RGB-Accelerometer LED Color Control Setup --------------
-  delay(500); // power-up safety delay
-
-  // RGB STRIP setup
-  FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
-  FastLED.setBrightness(BRIGHTNESS);
-
-  // Serial Monitor Debug Setup
-  Serial.begin(115200); //Set the baud rate of serial monitor
-  Serial.println("This program expects 2 pieces of data - INT Brightness, INT SingleHue");
-  Serial.println("Enter data in this format   <123_456>");
-  Serial.println("<Arduino is Ready>");
-  Serial.println();
-
-  if (DEBUG)
-  {
-    Serial.print("Serial started at: ");
-    Serial.println(115200);
-
-    Serial.println(__FILE__);
-    Serial.println(__DATE__);
-    Serial.print("Updates / Sec: ");
-    Serial.println(UPDATES_PER_SECOND);
-  }
-
-  delay(100);
-  // Serial.print("Brightness: ");
-  // Serial.print(BRIGHTNESS);
-  // Serial.print(" singleHUE: ");
-  // Serial.print(singleHUE);
-  // Serial.print(" LED_PIN: ");
-  // Serial.print(BRIGHTNESS);
-  // Serial.print(" NUM_LEDS: ");
-  // Serial.println(singleHUE);
-
-  // bootupLoop();
-}
-
-/***************************************************************************/
-void loop() // run over and over again
-{
-
-  // // Adjust the value to change the refresh rate.
-  FastLED.delay(1000 / UPDATES_PER_SECOND);
-  recvWithStartEndMarkers();
-  // showNewData();
-  if (newData == true)
-  {
-    strcpy(tempChars, receivedChars);
-    // this temporary copy is necessary to protect the original data
-    //   because strtok() used in parseData() replaces the commas with \0
-    parseData();
-    showParsedData();
-    newData = false;
-  }
-
-  // Set LED
-  fillAllLEDs(singleHUE);
-  FastLED.show();
-  FastLED.setBrightness(BRIGHTNESS);
-}
-
 void recvWithStartEndMarkers()
 {
   static boolean recvInProgress = false;
@@ -276,25 +172,16 @@ void recvWithStartEndMarkers()
   }
 }
 
-void showNewData() {
-  if(newData = true){
-    Serial.print("Received Chars: ");
-    delay(1);
-    Serial.println(receivedChars);
-    newData = false;
-  }
-}
-
 void parseData()
 { // split the data into its parts
 
   char *strtokIndx; // this is used by strtok() as an index
 
   strtokIndx = strtok(tempChars, "_"); // get the first part
-  BRIGHTNESS = atoi(strtokIndx); // convert this part to an integer
+  BRIGHTNESS = atoi(strtokIndx);       // convert this part to an integer
 
   strtokIndx = strtok(NULL, "_"); // this continues where the previous call left off
-  singleHUE = atoi(strtokIndx); // convert this part to an integer
+  singleHUE = atoi(strtokIndx);   // convert this part to an integer
 }
 
 void showParsedData()
@@ -304,3 +191,70 @@ void showParsedData()
   Serial.print("Hue ");
   Serial.println(singleHUE);
 }
+
+/**************************************************************************/
+void setup()
+{
+  // -------------- RGB-Accelerometer LED Color Control Setup --------------
+  delay(500); // power-up safety delay
+
+  // RGB STRIP setup
+  FastLED.addLeds<APA102, DATA_PIN, CLOCK_PIN, RGB>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  FastLED.setBrightness(BRIGHTNESS);
+
+  // Serial Monitor Debug Setup
+  Serial.begin(115200); //Set the baud rate of serial monitor
+  Serial.println("This program expects 2 pieces of data - INT Brightness, INT SingleHue");
+  Serial.println("Enter data in this format   <123_456>");
+  Serial.println("<Arduino is Ready>");
+  Serial.println();
+
+  if (DEBUG)
+  {
+    Serial.print("Serial started at: ");
+    Serial.println(115200);
+
+    Serial.println(__FILE__);
+    Serial.println(__DATE__);
+    Serial.print("Updates / Sec: ");
+    Serial.println(UPDATES_PER_SECOND);
+  }
+
+  delay(100);
+  // Serial.print("Brightness: ");
+  // Serial.print(BRIGHTNESS);
+  // Serial.print(" singleHUE: ");
+  // Serial.print(singleHUE);
+  // Serial.print(" DATA_PIN: ");
+  // Serial.print(BRIGHTNESS);
+  // Serial.print(" NUM_LEDS: ");
+  // Serial.println(singleHUE);
+
+  // bootupLoop();
+}
+
+/***************************************************************************/
+void loop() // run over and over again
+{
+
+  // // Adjust the value to change the refresh rate.
+  // FastLED.delay(1000 / UPDATES_PER_SECOND);
+  recvWithStartEndMarkers();
+  if (newData == true)
+  {
+    // Serial.print(tempChars);
+    Serial.println(receivedChars);
+    strcpy(tempChars, receivedChars);
+    // this temporary copy is necessary to protect the original data
+    //   because strtok() used in parseData() replaces the commas with \0
+    parseData();
+    showParsedData();
+    newData = false;
+  }
+  // delay(250);
+  // Set LED
+  FastLED.setBrightness(BRIGHTNESS);
+  fillAllLEDs(singleHUE);
+  // FastLED.show();
+}
+
