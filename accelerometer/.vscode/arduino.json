@@ -1,6 +1,6 @@
 {
     "board": "arduino:avr:pro",
     "port": "/dev/ttyUSB0",
-    "sketch": "bt-slave/BT-rgb-led.ino",
+    "sketch": "bt-master/BT-rgb-accelerometer.ino",
     "configuration": "cpu=16MHzatmega328"
 }

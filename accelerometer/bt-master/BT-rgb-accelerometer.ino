@@ -19,16 +19,21 @@
 /***************************************************************/
 // Controller Inputs
 
-// Used to convert radians to degrees, set to 1/1 to keep output to radians
-int degreeToRadControl = PI / PI;
+// Used to convert radians to degrees, set to 1/1 to keep output to radians 180/PI to show degrees
+int degreeToRadControl = 180 / PI;
 boolean DEBUG = false;
-int UPDATES_PER_SECOND = 10;
+int UPDATES_PER_SECOND = 100;
 
 // Axis Adjustment Toggle and pins
-int XadjustmentAllowed = 1; // TODO: set back to 0
-int YadjustmentAllowed = 1; // TODO: set back to 0
-const int XtogglePin = 9;
-const int YtogglePin = 8;
+int xAdjustmentAllowed = 1;
+int yAdjustmentAllowed = 1;
+
+const int xTogglePin = 8;
+const int yTogglePin = 9;
+
+boolean offsetTriggered = false;
+const int offsetPin = 2;
+const int offsetResetPin = 3;
 
 // Accelerometer declarations and imports
 #include <Wire.h> //Call the I2C library built in Arduino
@@ -53,29 +58,32 @@ int Y0, Y1, Y_out;
 int Z1, Z0, Z_out;
 double Xg, Yg, Zg;
 double Xangle, Yangle, Zangle;
+double Xangle90, Yangle90, Zangle90;
+double Xused, Yused, Zused;
+double Xoffset, Yoffset, Zoffset;
 int BRIGHTNESS;
 int singleHUE;
 
-// TODO: IS this where we add a calibration to set the axis back if the device is not orienteded flat?
-// if someInputPin === HIGH ) {
-//  -set xCalibration = X_angle(double Xg, double Yg, double Zg, int degreeControl)???
-//}
 
 // Calculating radians and then converting to degrees with atan(param) * (180/PI);
-//    adding 1.5 radians to end to make range from 0rad to 3rad instead of -1.5rad to 1.5rad
+// if degreeControl i 1/1 result in radians.
+//    adding 1.5 radians to end to make range from 0rad to 3.14 rad instead of -1.5rad to 1.5rad
+// double offset = 0;
+double offset = PI/2;
+
 double X_angle(double Xg, double Yg, double Zg, int degreeControl)
 {
-  return (atan(Xg / (sqrt((Yg * Yg) + (Zg * Zg)))) * degreeControl) + 1.5;
+  return (atan(Xg / (sqrt((Yg * Yg) + (Zg * Zg)))) * degreeControl);
 }
 
 double Y_angle(double Xg, double Yg, double Zg, int degreeControl)
 {
-  return (atan(Yg / (sqrt((Xg * Xg) + (Zg * Zg)))) * degreeControl) + 1.5;
+  return (atan(Yg / (sqrt((Xg * Xg) + (Zg * Zg)))) * degreeControl);
 }
 
 double Z_angle(double Xg, double Yg, double Zg, int degreeControl)
 {
-  return (atan(Zg / (sqrt((Yg * Yg) + (Xg * Xg)))) * degreeControl) + 1.5;
+  return (atan(Zg / (sqrt((Yg * Yg) + (Xg * Xg)))) * degreeControl);
 }
 
 /**************************************************************************/
@@ -84,10 +92,10 @@ void setup()
   delay(3000); // power-up safety delay
 
   //initialize the X-toggle pin as input
-  pinMode(XtogglePin, INPUT);
+  pinMode(xTogglePin, INPUT);
 
   //initialize the Y-toggle pin as input
-  pinMode(YtogglePin, INPUT);
+  pinMode(yTogglePin, INPUT);
 
   Serial.begin(115200); //Set the baud rate of serial monitor
 
@@ -209,33 +217,81 @@ void loop() // run over and over again
   }
 
   //Convert the output result into the acceleration g, accurate to 2 decimal points.
-  Xg = X_out / 256.00;
-  Yg = Y_out / 256.00;
-  Zg = Z_out / 256.00;
+  Xg = X_out / 1.00;
+  Yg = Y_out / 1.00;
+  Zg = Z_out / 1.00;
 
-  // TODO: IS this where we add a calibration to set the axis back if the device is not orienteded flat?
-  /* if ( someInputPin === HIGH ) {
-    -store xCalibration value to use later, must be a GLOBAL value so that it persists outside of main loop.
-      = X_angle(Xg, Yg, Zg, degreeToRadControl);
-
-  }
-  */
   Xangle = X_angle(Xg, Yg, Zg, degreeToRadControl);
   Yangle = Y_angle(Xg, Yg, Zg, degreeToRadControl);
   Zangle = Z_angle(Xg, Yg, Zg, degreeToRadControl);
 
+  // Xused = Xused + 90.0;
+  // Yused = Yused + 90.0;
+
+  Xangle = Xangle + 90.0;
+  Yangle = Yangle + 90.0;
+
   // Read the state of the toggle pins and check if the buttons are pressed
   // if it is the state is HIGH
-  if (digitalRead(XtogglePin) == HIGH) { // TODO: ASK; Can we use Tap Detection here instead of button input?
-  // RGB STRIP Hue setting based on X-Axis ONLY
+  // if (digitalRead(xTogglePin) == HIGH) { // TODO: ASK; Can we use Tap Detection here instead of button input?
+    // RGB STRIP Hue setting based on X-Axis ONLY
+  // }
+
+  // if (digitalRead(yTogglePin) == HIGH) {
+    // RGB STRIP BRIGHTNESS setting based on Y-Axis ONLY
+  // }
+
+  // TODO: ADD functionality to set an oreientation offset for when the adxl345 is to be mounted on a non-level surface,
+  // and offset button is pressed.
+  // if button pressed
+
+  // Convert to 360 degrees using sign of Z_out and hemispheres of Xangle.
+  if (Z_out < 0){
+    Xused = 360 - Xangle;
+    Yused = 360 - Yangle;
+  } else {
+    Xused = Xangle;
+    Yused = Yangle;
   }
 
-  if (digitalRead(YtogglePin) == HIGH) {
-    // RGB STRIP BRIGHTNESS setting based on Y-Axis ONLY
+  if (digitalRead(offsetResetPin) == HIGH)
+  {
+    offsetTriggered = false;
+    Xoffset = 0.0;
+    Yoffset = 0.0;
   }
-  
-  BRIGHTNESS = (255 * (Yangle / 3)); // Radians
-  singleHUE = (255 * (Xangle / 3)); // Radians
+  if (digitalRead(offsetPin) == HIGH)
+  {
+    offsetTriggered = true;
+    // Setting offset to Xangle as Xangle never goes over 180.
+    Xoffset = Xused;
+    Yoffset = Xused;
+  }
+
+  // Offset Calcs
+  if (offsetTriggered == true)
+  {
+    Xused = Xused - Xoffset;
+    Yused = Yangle - Yoffset;
+  }
+
+  if (Xused < 0)
+  {
+    Xused = Xused + 360;
+    Yused = Yused + 360;
+  }
+
+  // Brightness Calcs depending on where we are in 360 range. 
+  // Cutting in half because the user should only rotate through
+  // 180degrees and not 360 degrees.
+
+  if(Xused > 180){
+    BRIGHTNESS = (255 * ((360 - Yused) / 180));
+    singleHUE = (255 * ((360 - Xused) / 180));
+  } else {
+    BRIGHTNESS = (255* (Yused / 180));
+    singleHUE = (255* (Xused / 180));
+  }
 
   // RGB STRIP
   // TODO: ADD; This is where we need to SEND a signla over Serial to the Slave device
@@ -246,14 +302,30 @@ void loop() // run over and over again
   // FastLED.show();
   // FastLED.setBrightness(BRIGHTNESS);
   if (DEBUG) {
-    //  Serial.print("X-Allowed=");
-    //  Serial.print(XadjustmentAllowed);
-    //  Serial.print("\tY-Allowed=");
-    //  Serial.print(YadjustmentAllowed);
-    Serial.print("\tBrightness=");
-    Serial.print(BRIGHTNESS);
-    Serial.print("\tHue=");
-    Serial.println(singleHUE);
+     Serial.print("X_out=");
+     Serial.print(X_out);
+     Serial.print("\tY_out=");
+     Serial.print(Y_out);
+     Serial.print("\tZ_out=");
+     Serial.print(Z_out);
+     Serial.print("\tX=");
+     Serial.print(Xangle);
+     Serial.print(",");
+     Serial.print(Xused);
+     Serial.print(",");
+     Serial.print(Xoffset);
+     Serial.print("\tY=");
+     Serial.print(Yused);
+     Serial.print(",");
+     Serial.print(Yangle);
+     Serial.print(",");
+     Serial.print(Yoffset);
+     Serial.print("\tBrightness=");
+     Serial.print(BRIGHTNESS);
+     Serial.print("\tHue=");
+     Serial.print(singleHUE);
+     Serial.print("\toffset=");
+     Serial.println(offsetTriggered);
   } else {
     // Format: "<XXX_XXX>" which can be split at underscore.
     Serial.print("<");
@@ -265,17 +337,17 @@ void loop() // run over and over again
   }
 
   // -------------- TAP Detection Main Program --------------
-  int x, y, z;
-  adxl.readAccel(&x, &y, &z); // Read the accelerometer values and store them in variables declared above x,y,z
-  byte interrupts = adxl.getInterruptSource();
+  // int x, y, z;
+  // adxl.readAccel(&x, &y, &z); // Read the accelerometer values and store them in variables declared above x,y,z
+  // byte interrupts = adxl.getInterruptSource();
 
   // Free Fall Detection
-  if (adxl.triggered(interrupts, ADXL345_FREE_FALL))
-  {
-    Serial.println("*** FREE FALL ***");
-    // TODO: This is where we attach data onto the message for special stuf other than just Hue or Brightness
-    // Tracer to End of Arms.
-  }
+  // if (adxl.triggered(interrupts, ADXL345_FREE_FALL))
+  // {
+  //   Serial.println("*** FREE FALL ***");
+  //   // TODO: This is where we attach data onto the message for special stuf other than just Hue or Brightness
+  //   // Tracer to End of Arms.
+  // }
 
   // Inactivity
   // if(adxl.triggered(interrupts, ADXL345_INACTIVITY)){
@@ -307,4 +379,5 @@ void loop() // run over and over again
 
   // Adjust the value to change the refresh rate.
   delay(1000 / UPDATES_PER_SECOND);
+  // delay(1000);
 }
