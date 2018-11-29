@@ -21,8 +21,8 @@
 
 // Used to convert radians to degrees, set to 1/1 to keep output to radians 180/PI to show degrees
 int degreeToRadControl = 180 / PI;
-boolean DEBUG = true;
-int UPDATES_PER_SECOND = 10;
+boolean DEBUG = false;
+int UPDATES_PER_SECOND = 100;
 
 // Axis Adjustment Toggle and pins
 int xAdjustmentAllowed = 1;
@@ -233,13 +233,13 @@ void loop() // run over and over again
 
   // Read the state of the toggle pins and check if the buttons are pressed
   // if it is the state is HIGH
-  if (digitalRead(xTogglePin) == HIGH) { // TODO: ASK; Can we use Tap Detection here instead of button input?
+  // if (digitalRead(xTogglePin) == HIGH) { // TODO: ASK; Can we use Tap Detection here instead of button input?
     // RGB STRIP Hue setting based on X-Axis ONLY
-  }
+  // }
 
-  if (digitalRead(yTogglePin) == HIGH) {
+  // if (digitalRead(yTogglePin) == HIGH) {
     // RGB STRIP BRIGHTNESS setting based on Y-Axis ONLY
-  }
+  // }
 
   // TODO: ADD functionality to set an oreientation offset for when the adxl345 is to be mounted on a non-level surface,
   // and offset button is pressed.
@@ -248,8 +248,10 @@ void loop() // run over and over again
   // Convert to 360 degrees using sign of Z_out and hemispheres of Xangle.
   if (Z_out < 0){
     Xused = 360 - Xangle;
+    Yused = 360 - Yangle;
   } else {
     Xused = Xangle;
+    Yused = Yangle;
   }
 
   if (digitalRead(offsetResetPin) == HIGH)
@@ -276,6 +278,7 @@ void loop() // run over and over again
   if (Xused < 0)
   {
     Xused = Xused + 360;
+    Yused = Yused + 360;
   }
 
   // Brightness Calcs depending on where we are in 360 range. 
@@ -283,9 +286,11 @@ void loop() // run over and over again
   // 180degrees and not 360 degrees.
 
   if(Xused > 180){
-    BRIGHTNESS = (256 * ((360 - Xused) / 180));
+    BRIGHTNESS = (255 * ((360 - Yused) / 180));
+    singleHUE = (255 * ((360 - Xused) / 180));
   } else {
-    BRIGHTNESS = (256* (Xused / 180));
+    BRIGHTNESS = (255* (Yused / 180));
+    singleHUE = (255* (Xused / 180));
   }
 
   // RGB STRIP

@@ -43,17 +43,20 @@ int Y0, Y1, Y_out;
 int Z1, Z0, Z_out;
 double Xg, Yg, Zg;
 double Xangle, Yangle, Zangle;
-int singleHUE;
+int BRIGHTNESS = 100;
+int singleHUE = 10;
 
 // FastLED Strip definitions
 #include <FastLED.h>
 
 #define LED_PIN 7
-#define NUM_LEDS 60
-int BRIGHTNESS = 100;
-#define LED_TYPE WS2812
-#define COLOR_ORDER GRB
+#define CLOCK_PIN 9
+#define NUM_LEDS 20
+// #define LED_TYPE WS2812
+#define LED_TYPE APA102
 
+// #define COLOR_ORDER GRB
+#define COLOR_ORDER RGB
 
 CRGB leds[NUM_LEDS];
 
@@ -164,7 +167,8 @@ void setup()
   delay(3000); // power-up safety delay
 
   // RGB STRIP setup
-  FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  // FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  FastLED.addLeds<LED_TYPE, LED_PIN, CLOCK_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   FastLED.setBrightness(BRIGHTNESS);
 
   //initialize the X-toggle pin as input

@@ -8,18 +8,19 @@
 // #include <stddef.h>
 
 // FastLED Strip definitions
-#include <FastLED.h>
+#include <Keyboard.h>
+#include "FastLED.h"
 
 boolean DEBUG = false;
 int UPDATES_PER_SECOND = 10;
-int BRIGHTNESS = 100;
+int BRIGHTNESS = 50;
 int singleHUE = 75;
 
-#define DATA_PIN 5
-#define CLOCK_PIN 5
-#define NUM_LEDS 10
+#define DATA_PIN 7
+#define CLOCK_PIN 8
+#define NUM_LEDS 144
 #define LED_TYPE APA102
-#define COLOR_ORDER RGB
+#define COLOR_ORDER BRG
 
 CRGB leds[NUM_LEDS];
 
@@ -187,8 +188,8 @@ void parseData()
 void showParsedData()
 {
   Serial.print("Brightness: ");
-  Serial.println(BRIGHTNESS);
-  Serial.print("Hue ");
+  Serial.print(BRIGHTNESS);
+  Serial.print("\tHue ");
   Serial.println(singleHUE);
 }
 
@@ -196,10 +197,10 @@ void showParsedData()
 void setup()
 {
   // -------------- RGB-Accelerometer LED Color Control Setup --------------
-  delay(500); // power-up safety delay
+  delay(3000); // power-up safety delay
 
   // RGB STRIP setup
-  FastLED.addLeds<APA102, DATA_PIN, CLOCK_PIN, RGB>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  FastLED.addLeds<LED_TYPE, DATA_PIN, CLOCK_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   FastLED.setBrightness(BRIGHTNESS);
 
   // Serial Monitor Debug Setup
@@ -243,7 +244,7 @@ void loop() // run over and over again
   if (newData == true)
   {
     // Serial.print(tempChars);
-    Serial.println(receivedChars);
+    // Serial.println(receivedChars);
     strcpy(tempChars, receivedChars);
     // this temporary copy is necessary to protect the original data
     //   because strtok() used in parseData() replaces the commas with \0
@@ -251,10 +252,16 @@ void loop() // run over and over again
     showParsedData();
     newData = false;
   }
-  // delay(250);
   // Set LED
   FastLED.setBrightness(BRIGHTNESS);
+  // fill_rainbow(leds, NUM_LEDS, millis());
   fillAllLEDs(singleHUE);
-  // FastLED.show();
+  FastLED.show();
+  // delay(2000);
+
+  // fill_solid(leds, NUM_LEDS, CRGB::Black);
+  FastLED.show();
+  // delay(2000);
+  // delay(250);
 }
 
