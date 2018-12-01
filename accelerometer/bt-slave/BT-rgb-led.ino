@@ -14,10 +14,10 @@
 boolean DEBUG = false;
 int UPDATES_PER_SECOND = 10;
 int BRIGHTNESS = 50;
-int singleHUE = 75;
+int singleHUE = 255;
 
-#define DATA_PIN 7
-#define CLOCK_PIN 8
+#define DATA_PIN 4
+#define CLOCK_PIN 5
 #define NUM_LEDS 144
 #define LED_TYPE APA102
 #define COLOR_ORDER BRG
@@ -249,18 +249,18 @@ void loop() // run over and over again
     // this temporary copy is necessary to protect the original data
     //   because strtok() used in parseData() replaces the commas with \0
     parseData();
-    showParsedData();
+    // showParsedData();
     newData = false;
   }
   // Set LED
-  FastLED.setBrightness(BRIGHTNESS);
+  // FastLED.setBrightness(BRIGHTNESS);
   // fill_rainbow(leds, NUM_LEDS, millis());
   fillAllLEDs(singleHUE);
   FastLED.show();
   // delay(2000);
 
   // fill_solid(leds, NUM_LEDS, CRGB::Black);
-  FastLED.show();
+  // FastLED.show();
   // delay(2000);
   // delay(250);
 }

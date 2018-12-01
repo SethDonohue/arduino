@@ -21,15 +21,15 @@
 
 // Used to convert radians to degrees, set to 1/1 to keep output to radians 180/PI to show degrees
 int degreeToRadControl = 180 / PI;
-boolean DEBUG = false;
-int UPDATES_PER_SECOND = 100;
+boolean DEBUG = true;
+int UPDATES_PER_SECOND = 10;
 
 // Axis Adjustment Toggle and pins
-int xAdjustmentAllowed = 1;
-int yAdjustmentAllowed = 1;
+//int xAdjustmentAllowed = 1;
+//int yAdjustmentAllowed = 1;
 
-const int xTogglePin = 8;
-const int yTogglePin = 9;
+//const int xTogglePin = 8;
+//const int yTogglePin = 9;
 
 boolean offsetTriggered = false;
 const int offsetPin = 2;
@@ -68,8 +68,6 @@ int singleHUE;
 // Calculating radians and then converting to degrees with atan(param) * (180/PI);
 // if degreeControl i 1/1 result in radians.
 //    adding 1.5 radians to end to make range from 0rad to 3.14 rad instead of -1.5rad to 1.5rad
-// double offset = 0;
-double offset = PI/2;
 
 double X_angle(double Xg, double Yg, double Zg, int degreeControl)
 {
@@ -92,10 +90,12 @@ void setup()
   delay(3000); // power-up safety delay
 
   //initialize the X-toggle pin as input
-  pinMode(xTogglePin, INPUT);
-
+  // pinMode(xTogglePin, INPUT);
   //initialize the Y-toggle pin as input
-  pinMode(yTogglePin, INPUT);
+  // pinMode(yTogglePin, INPUT);
+
+  pinMode(offsetPin, INPUT);
+  pinMode(offsetResetPin, INPUT);
 
   Serial.begin(115200); //Set the baud rate of serial monitor
 
@@ -265,19 +265,23 @@ void loop() // run over and over again
     offsetTriggered = true;
     // Setting offset to Xangle as Xangle never goes over 180.
     Xoffset = Xused;
-    Yoffset = Xused;
+    Yoffset = Yused;
   }
 
   // Offset Calcs
   if (offsetTriggered == true)
   {
     Xused = Xused - Xoffset;
-    Yused = Yangle - Yoffset;
+    Yused = Yused - Yoffset;
   }
 
   if (Xused < 0)
   {
     Xused = Xused + 360;
+  }
+
+  if (Yused < 0)
+  {
     Yused = Yused + 360;
   }
 
@@ -286,11 +290,15 @@ void loop() // run over and over again
   // 180degrees and not 360 degrees.
 
   if(Xused > 180){
-    BRIGHTNESS = (255 * ((360 - Yused) / 180));
     singleHUE = (255 * ((360 - Xused) / 180));
   } else {
-    BRIGHTNESS = (255* (Yused / 180));
     singleHUE = (255* (Xused / 180));
+  }
+
+  if(Yused > 180){
+    BRIGHTNESS = (255 * ((360 - Yused) / 180));
+  } else {
+    BRIGHTNESS = (255* (Yused / 180));
   }
 
   // RGB STRIP
@@ -315,9 +323,9 @@ void loop() // run over and over again
      Serial.print(",");
      Serial.print(Xoffset);
      Serial.print("\tY=");
-     Serial.print(Yused);
-     Serial.print(",");
      Serial.print(Yangle);
+     Serial.print(",");
+     Serial.print(Yused);
      Serial.print(",");
      Serial.print(Yoffset);
      Serial.print("\tBrightness=");
@@ -332,7 +340,7 @@ void loop() // run over and over again
     Serial.print(BRIGHTNESS);
     Serial.print("_");
     Serial.print(singleHUE);
-    Serial.print(">");
+    Serial.println(">");
     // Serial.write(BRIGHTNESS);
   }
 
