@@ -12,13 +12,13 @@
 #include "FastLED.h"
 
 boolean DEBUG = false;
-int UPDATES_PER_SECOND = 10;
+int UPDATES_PER_SECOND = 60;
 int BRIGHTNESS = 50;
 int singleHUE = 255;
 
-#define DATA_PIN 4
-#define CLOCK_PIN 5
-#define NUM_LEDS 144
+#define DATA_PIN 7
+#define CLOCK_PIN 8
+#define NUM_LEDS 40
 #define LED_TYPE APA102
 #define COLOR_ORDER BRG
 
@@ -45,7 +45,7 @@ void fillAllLEDs(int hue)
   }
 }
 
-void fadeOut(int delay)
+void fadeOut(int delay, int startingBrightness)
 {
   for (int j = 254; j >= 0; j--)
   {
@@ -114,7 +114,7 @@ void whiteFlash(int flashLength, int fadeTime)
   FastLED.delay(1000);
   //  FastLED.delay(flashLength);
 
-  fadeOut(10);
+  fadeOut(10, 255);
   FastLED.setBrightness(0);
 }
 
@@ -128,9 +128,9 @@ void bootupLoop()
     FastLED.show();
     FastLED.delay(50);
   }
-  rainbow(1, 0);
-  fadeOut(5);
-  flash(3, 100, 25, 200);
+  rainbow(2, 0);
+  fadeOut(10, 150);
+  flash(3, 250, 10, 200);
 }
 
 // ---------- Incoming Data Function declarations ----------
@@ -222,16 +222,8 @@ void setup()
   }
 
   delay(100);
-  // Serial.print("Brightness: ");
-  // Serial.print(BRIGHTNESS);
-  // Serial.print(" singleHUE: ");
-  // Serial.print(singleHUE);
-  // Serial.print(" DATA_PIN: ");
-  // Serial.print(BRIGHTNESS);
-  // Serial.print(" NUM_LEDS: ");
-  // Serial.println(singleHUE);
-
-  // bootupLoop();
+  bootupLoop();
+  delay(100);
 }
 
 /***************************************************************************/
@@ -239,7 +231,6 @@ void loop() // run over and over again
 {
 
   // // Adjust the value to change the refresh rate.
-  // FastLED.delay(1000 / UPDATES_PER_SECOND);
   recvWithStartEndMarkers();
   if (newData == true)
   {
@@ -249,11 +240,11 @@ void loop() // run over and over again
     // this temporary copy is necessary to protect the original data
     //   because strtok() used in parseData() replaces the commas with \0
     parseData();
-    // showParsedData();
+    showParsedData();
     newData = false;
   }
   // Set LED
-  // FastLED.setBrightness(BRIGHTNESS);
+  FastLED.setBrightness(50);
   // fill_rainbow(leds, NUM_LEDS, millis());
   fillAllLEDs(singleHUE);
   FastLED.show();
@@ -263,5 +254,6 @@ void loop() // run over and over again
   // FastLED.show();
   // delay(2000);
   // delay(250);
+  FastLED.delay(1000 / UPDATES_PER_SECOND);
 }
 

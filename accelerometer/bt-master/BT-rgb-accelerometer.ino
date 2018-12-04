@@ -21,8 +21,8 @@
 
 // Used to convert radians to degrees, set to 1/1 to keep output to radians 180/PI to show degrees
 int degreeToRadControl = 180 / PI;
-boolean DEBUG = true;
-int UPDATES_PER_SECOND = 10;
+boolean DEBUG = false;
+int UPDATES_PER_SECOND = 32;
 
 // Axis Adjustment Toggle and pins
 //int xAdjustmentAllowed = 1;
@@ -167,6 +167,7 @@ void setup()
   adxl.FreeFallINT(1);
   adxl.doubleTapINT(1);
   adxl.singleTapINT(1);
+  delay(100);
 }
 /***************************************************************************/
 void loop() // run over and over again
@@ -340,7 +341,7 @@ void loop() // run over and over again
     Serial.print(BRIGHTNESS);
     Serial.print("_");
     Serial.print(singleHUE);
-    Serial.println(">");
+    Serial.print(">");
     // Serial.write(BRIGHTNESS);
   }
 
@@ -387,5 +388,4 @@ void loop() // run over and over again
 
   // Adjust the value to change the refresh rate.
   delay(1000 / UPDATES_PER_SECOND);
-  // delay(1000);
 }
