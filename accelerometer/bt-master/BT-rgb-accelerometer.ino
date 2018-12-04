@@ -22,7 +22,7 @@
 // Used to convert radians to degrees, set to 1/1 to keep output to radians 180/PI to show degrees
 int degreeToRadControl = 180 / PI;
 boolean DEBUG = false;
-int UPDATES_PER_SECOND = 32;
+int UPDATES_PER_SECOND = 50;
 
 // Axis Adjustment Toggle and pins
 //int xAdjustmentAllowed = 1;

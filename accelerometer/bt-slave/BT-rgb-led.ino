@@ -12,13 +12,13 @@
 #include "FastLED.h"
 
 boolean DEBUG = false;
-int UPDATES_PER_SECOND = 60;
+int UPDATES_PER_SECOND = 100;
 int BRIGHTNESS = 50;
 int singleHUE = 255;
 
-#define DATA_PIN 7
-#define CLOCK_PIN 8
-#define NUM_LEDS 40
+#define DATA_PIN 4
+#define CLOCK_PIN 5
+#define NUM_LEDS 144
 #define LED_TYPE APA102
 #define COLOR_ORDER BRG
 
@@ -197,11 +197,15 @@ void showParsedData()
 void setup()
 {
   // -------------- RGB-Accelerometer LED Color Control Setup --------------
-  delay(3000); // power-up safety delay
+  delay(100); // power-up safety delay
 
   // RGB STRIP setup
   FastLED.addLeds<LED_TYPE, DATA_PIN, CLOCK_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   FastLED.setBrightness(BRIGHTNESS);
+  flash(3, 250, 10, 200);
+
+  // delay(100);
+  // bootupLoop();
 
   // Serial Monitor Debug Setup
   Serial.begin(115200); //Set the baud rate of serial monitor
@@ -222,8 +226,7 @@ void setup()
   }
 
   delay(100);
-  bootupLoop();
-  delay(100);
+  // delay(100);
 }
 
 /***************************************************************************/
