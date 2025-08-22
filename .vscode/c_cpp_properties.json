@@ -5,7 +5,8 @@
             "includePath": [
                 "/usr/include",
                 "/usr/local/include",
-                "${workspaceFolder}"
+                "${workspaceFolder}",
+                "${workspaceFolder}/accelerometer/ADXL345-examples"
             ],
             "defines": [],
             "intelliSenseMode": "clang-x64",
@@ -45,7 +46,7 @@
             "browse": {
                 "path": [
                     "/home/seth/arduino-1.8.5/hardware/arduino/avr/cores/arduino",
-		                "/home/seth/arduino-1.8.5/libraries/FastLED/",
+                    "/home/seth/arduino-1.8.5/libraries/FastLED/",
                     "${workspaceFolder}",
                     "/usr/include/c++/5",
                     "/usr/include/x86_64-linux-gnu/c++/5",
@@ -84,6 +85,17 @@
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""
             }
+        },
+        {
+            "name": "arduino",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "macos-clang-x64"
         }
     ],
     "version": 4
